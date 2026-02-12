@@ -3,6 +3,7 @@ from tkinter import messagebox
 from pathlib import Path
 from PIL import Image, ImageTk
 from EquipmentLogic import equip
+import customtkinter as ctk
 
 # folder containing larger equipped icons
 equippedIconFolderPath = Path(__file__).parent / "equippedicons"
@@ -36,15 +37,16 @@ class IconCache:
         key = (folderPath, size)
         if key in self.cache:
             return self.cache[key]
-        # otherwise load and resize image
-        icon = Image.open(folderPath).resize(size)
-        # converts pillow image to tkinter compatible image and then cache
-        tkinterIcon = ImageTk.PhotoImage(icon)
-        self.cache[key] = tkinterIcon
-        return tkinterIcon
+
+        img = Image.open(folderPath).convert("RGBA")
+        ctk_img = ctk.CTkImage(light_image=img, dark_image=img, size=size)
+
+        self.cache[key] = ctk_img
+        return ctk_img
+
 
 """drop down Toplevel window for grid of icons, inherits tk.Toplevel (floating window)"""
-class GridPopup(tk.Toplevel):
+class GridPopup(ctk.CTkToplevel):
     def __init__(self, mainWindow, slotIndex, allIconsPaths, size=(420, 360), cols=3):
         super().__init__(mainWindow)
 
@@ -59,16 +61,9 @@ class GridPopup(tk.Toplevel):
         self.bind("<FocusOut>", lambda e: self.destroy())
         self.bind("<Escape>", lambda e: self.destroy())
 
-        # scrollable canvas, vertical scrollbar setup
-        self.canvas = tk.Canvas(self, width=self.w, height=self.h, highlightthickness=0)
-        self.vsb = tk.Scrollbar(self, orient="vertical", command=self.canvas.yview)
-        self.canvas.configure(yscrollcommand=self.vsb.set)
-        self.vsb.pack(side="right", fill="y")
-        self.canvas.pack(side="left", fill="both", expand=True)
-
-        # frame sits inside the canvas and holds all the buttons and labels (canvas can scroll but not frame)
-        self.frame = tk.Frame(self.canvas)
-        self.canvas.create_window((0, 0), window=self.frame, anchor="nw")
+        # scroll
+        self.scroll = ctk.CTkScrollableFrame(self, width=self.w, height=self.h)
+        self.scroll.pack(fill="both", expand=True)
 
         # build icon grid
         pad = 6
@@ -76,22 +71,19 @@ class GridPopup(tk.Toplevel):
             # find what row/col current icon is placed at
             r, c = divmod(i, self.cols)
             # build button
-            btn = tk.Button(
-                self.frame,
+            btn = ctk.CTkButton(
+                self.scroll,
+                text="",
+                width=gridIconSize[0],
+                height=gridIconSize[1],
+                fg_color="transparent",
                 image=self.mainWindow.iconCache.get(ipath, (64, 64)),
-                bd=0,
                 command=lambda path=ipath: self.pick(path),
             )
-            btn.grid(row=r, column=c, padx=pad, pady=pad)
+            btn.grid(row=r, column=c, padx=pad, pady=pad, sticky="nsew")
 
-        # scroll region update
-        self.frame.bind("<Configure>", lambda e: self.canvas.configure(scrollregion=self.canvas.bbox("all")))
-
-        # mouse wheel scroll
-        self.canvas.bind_all("<MouseWheel>", self.onMouseWheel)
-
-    def onMouseWheel(self, event):
-        self.canvas.yview_scroll(-int(event.delta / 120), "units")
+        for c in range(self.cols):
+            self.scroll.grid_columnconfigure(c, weight=1)
 
     def showBelow(self, widget):
         self.update_idletasks()
@@ -107,11 +99,11 @@ class GridPopup(tk.Toplevel):
         self.destroy()
 
 """main window that manages the 5 equipment slots and opens popups"""
-class MainWindow(tk.Tk):
+class MainWindow(ctk.CTk):
     def __init__(self):
-        # This calls tk.Tk.__init__(), which creates the actual main window.
         super().__init__()
 
+        ctk.set_appearance_mode("Dark")
         self.title("Helldivers 2 Loadout Manager")
         self.geometry("860x520")
         self.resizable(False, False)
@@ -127,40 +119,40 @@ class MainWindow(tk.Tk):
         self.chooseButtons = []
 
         # title
-        tk.Label(self, text="HELLDIVERS 2 Loadout Manager", font=("Segoe UI", 14, "bold")).pack(pady=8)
+        ctk.CTkLabel(self, text="HELLDIVERS 2 Loadout Manager", font=("Segoe UI", 14, "bold")).pack(pady=8)
 
         # row that holds all the equipment slot frames
-        row = tk.Frame(self)
+        row = ctk.CTkFrame(self)
         row.pack(padx=12, pady=6, fill="x")
 
         # populate row
         for i, name in enumerate(equipmentNames):
             # frame in row that holds button, image, description
-            slotFrame = tk.Frame(row, bd=1, relief="ridge", padx=8, pady=8)
+            slotFrame = ctk.CTkFrame(row, corner_radius=8)
             slotFrame.pack(side="left", padx=6, pady=6)
 
             # select buttons
-            button = tk.Button(slotFrame, text=f"{name} ▾", command=lambda idx=i: self.openGrid(idx))
-            button.pack(fill="x")
+            button = ctk.CTkButton(slotFrame, text=f"{name} ▾", command=lambda idx=i: self.openGrid(idx))
+            button.pack(fill="x", padx=6, pady=6)
             self.chooseButtons.append(button)
 
             # empty blank square before image
-            holder = tk.Frame(slotFrame, width=slotFrameIconSize[0], height=slotFrameIconSize[1], bg="#000000")
+            holder = ctk.CTkFrame(slotFrame, width=slotFrameIconSize[0], height=slotFrameIconSize[1], fg_color="#000000")
             holder.pack_propagate(False)
             holder.pack(pady=6)
 
             # actual image
-            iconLabel = tk.Label(holder, bg="#000000")
+            iconLabel = ctk.CTkLabel(holder, text="")
             iconLabel.pack(expand=True)
             self.selectedIconLabels.append(iconLabel)
 
             # descriptions
-            description = tk.Label(slotFrame, text="None")
+            description = ctk.CTkLabel(slotFrame, text="None")
             description.pack()
             self.selectedIconDescriptionLabels.append(description)
 
         # equip button at the bottom
-        tk.Button(self, text="EQUIP", font=("Segoe UI", 14, "bold"), command=self.onEquip).pack(pady=10)
+        ctk.CTkButton(self, text="EQUIP", font=("Segoe UI", 14, "bold"), command=self.onEquip).pack(pady=10)
 
     # event handlers
     def openGrid(self, slotIndex):
@@ -177,7 +169,7 @@ class MainWindow(tk.Tk):
         ph = self.iconCache.get(p, slotFrameIconSize)
         self.selectedIcons[slotIndex] = ph
         self.selectedIconLabels[slotIndex].configure(image=ph)
-        self.selectedIconDescriptionLabels[slotIndex].config(text=p.name)
+        self.selectedIconDescriptionLabels[slotIndex].configure(text=p.stem)
 
     def onEquip(self):
         """When user clicks EQUIP, call the external equip() function."""

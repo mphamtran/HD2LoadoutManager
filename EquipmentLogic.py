@@ -43,16 +43,16 @@ def equip(equipmentImage):
 
         time.sleep(0.2)
 
-    emptySlot = False
+    emptyFirstSlot = False
 
     # make sure window is focused
     for i in range(3):
         click(950, 60)
 
     # check if the first slot is empty or not
-    # original function (not enough variation since EmptySlot.png is basically just gray box)
-    # if pyautogui.locateOnScreen('EmptySlot.png', region=(58, 840, 73, 73), confidence=0.06):
-    #     emptySlot = True
+    # original function (not enough variation since emptyFirstSlot.png is basically just gray box)
+    # if pyautogui.locateOnScreen('emptyFirstSlot.png', region=(58, 840, 73, 73), confidence=0.06):
+    #     emptyFirstSlot = True
     firstSlotImg = pyautogui.screenshot(region=(58, 840, 73, 73))
     # convert to numpy array (H, W, Color Channel)
     firstSlotImgArray = np.array(firstSlotImg)
@@ -63,9 +63,9 @@ def equip(equipmentImage):
 
     # Low std dev: pixels are very similar (gray box empty slot), High std dev: pixels vary a lot
     if stdDev < 10:
-        emptySlot = True
+        emptyFirstSlot = True
 
-    print("There is an empty slot:", emptySlot)
+    print("The first slot is empty:", emptyFirstSlot)
 
     # loop through each slot, i counter
     for i, ((x, y), imageName) in enumerate(slots):
@@ -79,7 +79,7 @@ def equip(equipmentImage):
             continue
 
         # click first equipment slot, click booster slot, click rest of slots if replacing a full loadout
-        if i == 0 or i == boosterSlot or not emptySlot:
+        if i == 0 or i == boosterSlot or not emptyFirstSlot:
             print(">clicking box", i + 1)
             click(x, y)
             time.sleep(0.2)
