@@ -4,11 +4,15 @@ from pathlib import Path
 from PIL import Image, ImageTk
 from EquipmentLogic import equip
 import customtkinter as ctk
+import json
 
 # folder containing larger equipped icons
 equippedIconFolderPath = Path(__file__).parent / "equippedicons"
 # folder containing grid icons from submenu
 gridIconFolderPath = Path(__file__).parent / "gridicons"
+# json path (holds strategems in loadout, expand to weps/armor/nade l8r
+# also standardize variable naming between loadout/equipment/strategems l8r)
+loadoutJson = Path(__file__).parent / "loadouts.json"
 # icon size in the dropdown grid
 gridIconSize = (64, 64)
 # column number in the dropdown grid
@@ -27,7 +31,22 @@ def loadIcons(folderPath: Path):
     return allIconsPaths
 
 
-"""cache icons to avoid garbage collection and speeds up repeated icon loading"""
+# json file handling
+def loadJson(jsonPath: Path = loadoutJson):
+    try:
+        data = json.loads(jsonPath.read_text(encoding="utf-8"))
+        return data.get("loadouts", {})
+    except Exception:
+        return {}
+
+
+def saveLoadoutList(loadouts, jsonPath: Path = loadoutJson):
+    # since "loadouts" will get stripped from .get
+    data = {"loadouts": loadouts}
+    jsonPath.write_text(json.dumps(data, indent=2), encoding="utf-8")
+
+
+# cache icons to avoid garbage collection and speeds up repeated icon loading
 class IconCache:
     def __init__(self):
         self.cache = {}
@@ -45,7 +64,7 @@ class IconCache:
         return ctk_img
 
 
-"""drop down Toplevel window for grid of icons, inherits tk.Toplevel (floating window)"""
+# drop down Toplevel window for grid of icons, inherits tk.Toplevel (floating window)
 class GridPopup(ctk.CTkToplevel):
     def __init__(self, mainWindow, slotIndex, allIconsPaths, size=(420, 360), cols=3):
         super().__init__(mainWindow)
@@ -56,7 +75,7 @@ class GridPopup(ctk.CTkToplevel):
         self.cols = cols
         self.w, self.h = size
 
-        # make it work like a dropdown, automatically close popup if focus is lost or user presses Escape
+        # removes window border, automatically close popup if focus is lost or user presses Escape
         self.overrideredirect(True)
         self.bind("<FocusOut>", lambda e: self.destroy())
         self.bind("<Escape>", lambda e: self.destroy())
@@ -70,17 +89,31 @@ class GridPopup(ctk.CTkToplevel):
         for i, ipath in enumerate(self.allIconsPaths):
             # find what row/col current icon is placed at
             r, c = divmod(i, self.cols)
+
+            # frame for button, image, name
+            gridItemFrame = ctk.CTkFrame(self.scroll, fg_color="transparent")
+            gridItemFrame.grid(row=r, column=c, padx=pad, pady=pad, sticky="nsew")
+
             # build button
             btn = ctk.CTkButton(
-                self.scroll,
+                gridItemFrame,
                 text="",
                 width=gridIconSize[0],
                 height=gridIconSize[1],
                 fg_color="transparent",
-                image=self.mainWindow.iconCache.get(ipath, (64, 64)),
+                image=self.mainWindow.iconCache.get(ipath, gridIconSize),
                 command=lambda path=ipath: self.pick(path),
             )
-            btn.grid(row=r, column=c, padx=pad, pady=pad, sticky="nsew")
+            btn.pack()
+
+            # name
+            imgName = Path(ipath).stem
+            ctk.CTkLabel(
+                gridItemFrame,
+                text=imgName,
+                wraplength=gridIconSize[0] + 20,
+                font=ctk.CTkFont(size=11)
+            ).pack(pady=(2, 0))
 
         for c in range(self.cols):
             self.scroll.grid_columnconfigure(c, weight=1)
@@ -98,7 +131,8 @@ class GridPopup(ctk.CTkToplevel):
         self.mainWindow.setSlot(self.slotIndex, str(path.resolve()))
         self.destroy()
 
-"""main window that manages the 5 equipment slots and opens popups"""
+
+# main window that manages the 5 equipment slots and opens popups
 class MainWindow(ctk.CTk):
     def __init__(self):
         super().__init__()
@@ -111,6 +145,7 @@ class MainWindow(ctk.CTk):
         # icon cache handling
         self.iconCache = IconCache()
         self.allIconsPaths = loadIcons(gridIconFolderPath)
+
         # equipment slot icon handling
         self.selectedIconPaths = [None] * equipmentNum
         self.selectedIcons = [None] * equipmentNum
@@ -162,8 +197,8 @@ class MainWindow(ctk.CTk):
         gp = GridPopup(self, slotIndex, self.allIconsPaths, size=(420, 360), cols=gridColNum)
         gp.showBelow(self.chooseButtons[slotIndex])
 
+    # when user picks an icon, update preview + caption
     def setSlot(self, slotIndex, absPath: str):
-        """When user picks an icon, update preview + caption."""
         self.selectedIconPaths[slotIndex] = absPath
         p = Path(absPath)
         ph = self.iconCache.get(p, slotFrameIconSize)
@@ -172,7 +207,6 @@ class MainWindow(ctk.CTk):
         self.selectedIconDescriptionLabels[slotIndex].configure(text=p.stem)
 
     def onEquip(self):
-        """When user clicks EQUIP, call the external equip() function."""
         ordered = self.selectedIconPaths[:]
         empty = [i + 1 for i, v in enumerate(ordered) if not v]
         if empty and not messagebox.askyesno("Missing", f"Slots {empty} empty. Continue?"):
