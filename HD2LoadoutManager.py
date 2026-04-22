@@ -84,6 +84,7 @@ class MainWindow(ctk.CTk):
         self.selectedIconLabels = []
         self.selectedIconDescriptionLabels = []
         self.chooseButtons = []
+        self.activeSlot = None
 
         # title
         ctk.CTkLabel(self, text="HELLDIVERS 2 Loadout Manager", font=("Segoe UI", 14, "bold")).pack(pady=8)
@@ -108,9 +109,10 @@ class MainWindow(ctk.CTk):
             slotFrame.pack(fill="x", padx=6, pady=6)
 
             # select buttons
-            #button = ctk.CTkButton(slotFrame, text=f"{name} ▾", command=lambda idx=i: self.openGrid(idx))
-            #button.pack(side="left", padx=6, pady=6)
-            #self.chooseButtons.append(button)
+            button = ctk.CTkButton(slotFrame, text=f"{name} ▾", fg_color="transparent", hover_color="#333333",
+                                   command=lambda idx=i: self.selectSlot(idx))
+            button.place(relx=0, rely=0, relwidth=1, relheight=1)
+            self.chooseButtons.append(button)
 
             # empty blank square before image
             holder = ctk.CTkFrame(slotFrame, width=slotFrameIconSize[0], height=slotFrameIconSize[1], fg_color="#000000")
@@ -167,12 +169,33 @@ class MainWindow(ctk.CTk):
         ctk.CTkButton(rightFrame, text="EQUIP", font=("Segoe UI", 14, "bold"), command=self.onEquip).pack(side="right", padx=6)
 
     # event handlers
-    def openGrid(self, slotIndex):
-        if not self.allIconsPaths:
-            messagebox.showinfo("No icons", f"No PNGs in: {gridIconFolderPath}")
+    #def openGrid(self, slotIndex):
+    #    if not self.allIconsPaths:
+    #        messagebox.showinfo("No icons", f"No PNGs in: {gridIconFolderPath}")
+    #        return
+    #    gp = GridPopup(self, slotIndex, self.allIconsPaths, size=(420, 360), cols=gridColNum)
+    #    gp.showBelow(self.chooseButtons[slotIndex])
+
+    def pick(self, path: Path):
+        if self.activeSlot is None:
+            messagebox.showinfo("No Slot Selected", "Please select a slot")
             return
-        gp = GridPopup(self, slotIndex, self.allIconsPaths, size=(420, 360), cols=gridColNum)
-        gp.showBelow(self.chooseButtons[slotIndex])
+
+        self.setSlot(self.activeSlot, str(path.resolve()))
+
+    # when user clicks button next to slots
+    def selectSlot(self, idx):
+        self.activeSlot = idx
+
+        # reset all highlights other
+        for button in self.chooseButtons:
+            button.configure(border_width=0)
+
+        # highlight selected slot
+        self.chooseButtons[idx].configure(
+            border_width=2,
+            border_color="cyan"
+        )
 
     # when user picks an icon, update preview + caption
     def setSlot(self, slotIndex, absPath: str):
