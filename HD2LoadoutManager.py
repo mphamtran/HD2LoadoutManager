@@ -9,7 +9,7 @@ import json
 # folder containing larger equipped icons
 equippedIconFolderPath = Path(__file__).parent / "equippedicons"
 # folder containing grid icons from submenu
-gridIconFolderPath = Path(__file__).parent / "gridicons"
+gridIconFolderPath = Path(__file__).parent / "debugLOADSOFICONS"
 # json path (holds strategems in loadout, expand to weps/armor/nade l8r
 # also standardize variable naming between loadout/equipment/strategems l8r)
 loadoutJson = Path(__file__).parent / "loadouts.json"
