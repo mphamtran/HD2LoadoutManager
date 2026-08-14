@@ -1,6 +1,6 @@
 # HD2LoadoutManager
 Automation tool to address missing native features in Helldivers 2, providing an intuitive selection interface and automated loadout management and equipping via PyAutoGUI library.
-Each iteration currently in separate branches.
+Each iteration currently in separate branches. Future planned features: JSON loadout saving/loading, separate booster container, slot swapping, art pass, further performance optimization.
 
 # Video Demos [Click to watch]
 ## Ctkinter
