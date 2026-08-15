@@ -13,5 +13,9 @@ pip install opencv-python
 
 pip install Pillow --upgrade
 
-ECHO Installed/Updated: Python, PyScreeze, pywin32, keyboard, pyautogui, opencv-python, Pillow
+pip install pydirectinput
+
+pip install customtkinter
+
+ECHO Installed/Updated: Python, PyScreeze, pywin32, keyboard, pyautogui, opencv-python, Pillow, pydirectinput, customtkinter
 PAUSE

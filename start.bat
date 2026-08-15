@@ -19,5 +19,5 @@ ECHO ⢀⢇⢀⢀⢀⢀⢀⢀⢀⡸⡠⠊⢀⣠⠞⠉⠉⠉⠉⠉⠉⠉⠉⠉⠑
 ECHO ⢀⠈⠢⣀⢀⢀⢀⣀⡴⠋⢀⢀⠘⣅⢀⢀⢀⢀⢀⢀⢀⢀⢀⢀⢀⢀⡇⢠⢀⢀⢀⣠⡇⢀⡆
 PAUSE
 color 07
-Python HD2EquipmentManager.py
+Python HD2LoadoutManager.py
 pause
