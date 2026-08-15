@@ -4,11 +4,11 @@ Each iteration currently in separate branches. Future planned features: JSON loa
 
 # Video Demos [Click to watch]
 ## Ctkinter
-[![Watch the video](https://img.youtube.com/vi/ND7VeaLPHJ0/hqdefault.jpg)](https://www.youtube.com/embed/ND7VeaLPHJ0)
+[![Watch the video](https://img.youtube.com/vi/7nkmtlw23tA/hqdefault.jpg)](https://www.youtube.com/embed/7nkmtlw23tA)
 ## Tkinter
-[![Watch the video](https://img.youtube.com/vi/nNwKAS8bpFE/hqdefault.jpg)](https://www.youtube.com/embed/nNwKAS8bpFE)
+[![Watch the video](https://img.youtube.com/vi/Lt8yc05QgDQ/hqdefault.jpg)](https://www.youtube.com/embed/Lt8yc05QgDQ)
 ## Script
-[![Watch the video](https://img.youtube.com/vi/Uonfsn4pwm0/hqdefault.jpg)](https://www.youtube.com/embed/Uonfsn4pwm0)
+[![Watch the video](https://img.youtube.com/vi/CPsMiE7vd5U/hqdefault.jpg)](https://www.youtube.com/embed/CPsMiE7vd5U)
 
 # MVPs
 <img width="423" height="274" alt="Screenshot 2026-08-13 165757" src="https://github.com/user-attachments/assets/18cf38f8-c66b-441c-b4bd-c9aaaf01471b" />
